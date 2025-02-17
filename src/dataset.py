@@ -9,9 +9,9 @@ class Flickr30kDataset(torch.utils.data.Dataset):
         self.ds = dataset.filter(lambda x: x["split"] == split)
 
         # load the model and processor to get the image and text embeddings
-        model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-        self.text_model = model.text_model
-        self.vision_model = model.vision_model
+        self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+        self.text_model = self.model.text_model
+        self.vision_model = self.model.vision_model
 
         self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
@@ -31,6 +31,9 @@ class Flickr30kDataset(torch.utils.data.Dataset):
         text_outputs = self.text_model(**text_inputs)
 
         image_embeds = image_outputs.pooler_output  # shape: [1, 768]
-        text_embeds = text_outputs.last_hidden_state  # shape: [5, 22, 512]
+        image_embeds = self.model.visual_projection(image_embeds)  # shape: [1, 512]
+
+        text_embeds = text_outputs.last_hidden_state  # shape: [5, 25 512]
+        text_embeds = self.model.text_projection(text_embeds)  # shape: [5, 25, 512]
 
         return image_embeds, text_embeds
