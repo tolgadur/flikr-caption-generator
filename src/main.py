@@ -18,14 +18,14 @@ def main():
     )
 
     outputs = model(**inputs)
-    logits_per_image = (
-        outputs.logits_per_image
-    )  # this is the image-text similarity score
-    probs = logits_per_image.softmax(
-        dim=1
-    )  # we can take the softmax to get the label probabilities
-
+    logits_per_image = outputs.logits_per_image
+    probs = logits_per_image.softmax(dim=1)
     print(probs)
+
+    image_embeds = outputs.image_embeds
+    text_embeds = outputs.text_embeds
+    print(image_embeds.shape)
+    print(text_embeds.shape)
 
 
 if __name__ == "__main__":
