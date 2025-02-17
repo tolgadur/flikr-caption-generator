@@ -2,8 +2,10 @@ from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
 import requests
 
+from trainer import train
 
-def main():
+
+def example_clip():
     model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
@@ -26,6 +28,10 @@ def main():
     text_embeds = outputs.text_embeds
     print(image_embeds.shape)
     print(text_embeds.shape)
+
+
+def main():
+    train()
 
 
 if __name__ == "__main__":
