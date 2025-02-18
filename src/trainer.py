@@ -1,32 +1,27 @@
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
-from torch.nn.utils.rnn import pad_sequence
 import tqdm
 
 from dataset import Flickr30kDataset
 from decoder import Decoder
 from config import DEVICE
-
-
-def collate_fn(batch):
-    # Separate the batch components
-    images, img_embeds, inp_embeds, tgt_embeds = zip(*batch)
-
-    # Pad sequences to max length (automatically handles different lengths)
-    inp_embeds = pad_sequence([x.squeeze(0) for x in inp_embeds], batch_first=True)
-    tgt_embeds = pad_sequence([x.squeeze(0) for x in tgt_embeds], batch_first=True)
-
-    return images, img_embeds, inp_embeds, tgt_embeds
+from collate import CLIPEmbedder, collate_fn
 
 
 def train(epochs=10, batch=256, lr=0.001):
-    # define the model
+    # define the model and embedder
     model = Decoder(d_model=512, heads=8, n_layers=6).to(DEVICE)
+    embedder = CLIPEmbedder()
 
     # load the dataset
     ds = Flickr30kDataset()
-    dataloader = DataLoader(ds, batch_size=batch, shuffle=True, collate_fn=collate_fn)
+    dataloader = DataLoader(
+        ds,
+        batch_size=batch,
+        shuffle=True,
+        collate_fn=lambda batch: collate_fn(batch, embedder),
+    )
 
     # define the loss function and optimizer
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1).to(DEVICE)
@@ -56,6 +51,5 @@ def train(epochs=10, batch=256, lr=0.001):
             epoch_loss += loss.item()
 
         scheduler.step()
-
         print(f"Epoch {epoch}, Loss: {epoch_loss / len(dataloader)}")
         torch.save(model.state_dict(), f"models/model_{epoch}.pth")

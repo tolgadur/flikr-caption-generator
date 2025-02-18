@@ -1,7 +1,9 @@
 from trainer import train
+from utils import print_image
 
 
 def main():
+    # print_image()
     train()
 
 
