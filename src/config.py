@@ -9,11 +9,8 @@ def get_vocab():
     return word2index, index2word
 
 
-DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
-if torch.cuda.is_available():
-    DEVICE = "cuda"
-
 TOKEN2INDEX, INDEX2TOKEN = get_vocab()
 VOCAB_SIZE = len(TOKEN2INDEX)
 
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {DEVICE}")

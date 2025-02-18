@@ -23,8 +23,13 @@ class FlickrImageCaptioning(nn.Module):
         # Decoder
         self.decoder = Decoder(d_model, heads, n_layers, dropout)
 
-        # Output projection
-        self.classifier = nn.Linear(d_model, VOCAB_SIZE)
+        # Output layers
+        self.out = nn.Sequential(
+            nn.Linear(d_model, 2048),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(2048, VOCAB_SIZE),
+        )
 
     def get_image_embeddings(self, pixel_values: torch.Tensor) -> torch.Tensor:
         """Process images through CLIP vision model."""
@@ -67,4 +72,4 @@ class FlickrImageCaptioning(nn.Module):
         x = self.decoder(x)
 
         # Project to vocabulary
-        return self.classifier(x)
+        return self.out(x)
