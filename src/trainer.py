@@ -29,8 +29,13 @@ def train(epochs=10, batch=256, lr=0.001):
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
     for epoch in range(epochs):
-        epoch_loss = 0
-        for _, inp_embeds, tgt_embeds in tqdm.tqdm(dataloader):
+        model.train()
+        running_loss = 0
+        n_batches = 0
+
+        for _, inp_embeds, tgt_embeds in tqdm.tqdm(
+            dataloader, desc=f"Epoch {epoch + 1}/{epochs}"
+        ):
             inp_embeds = inp_embeds.to(DEVICE)
             tgt_embeds = tgt_embeds.to(DEVICE)
 
@@ -45,9 +50,13 @@ def train(epochs=10, batch=256, lr=0.001):
             loss.backward()
             optimizer.step()
 
-            print(f"Epoch {epoch}, Loss: {loss.item()}")
-            epoch_loss += loss.item()
+            # Update running loss
+            running_loss += loss.item()
+            n_batches += 1
+
+        # Compute epoch average loss
+        epoch_loss = running_loss / n_batches
+        print(f"Epoch {epoch + 1}/{epochs}, Average Loss: {epoch_loss:.4f}")
 
         scheduler.step()
-        print(f"Epoch {epoch}, Loss: {epoch_loss / len(dataloader)}")
         torch.save(model.state_dict(), f"models/model_{epoch}.pth")
