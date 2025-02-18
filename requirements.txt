@@ -2,3 +2,4 @@ transformers
 pillow
 requests
 torch
+matplotlib
