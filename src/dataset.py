@@ -4,57 +4,40 @@ from datasets import load_dataset
 
 
 class Flickr30kDataset(torch.utils.data.Dataset):
-    def __init__(self, split="train"):
-        dataset = load_dataset("nlphuji/flickr30k", split="test")
-        self.ds = dataset.filter(lambda x: x["split"] == split)
+    def __init__(self, split="train", seed=42):
+        torch.manual_seed(seed)
+        ds = load_dataset("nlphuji/flickr30k", split="test").select(range(100))
+        self.ds = ds.filter(lambda x: x["split"] == split)
 
-        # load the model and processor to get the image and text embeddings
-        self.model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-        self.text_model = self.model.text_model
-        self.vision_model = self.model.vision_model
-
-        self.processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+        self.pr = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+        self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+        self.vision_model = self.clip_model.vision_model
+        self.text_model = self.clip_model.text_model
 
     def __len__(self):
         return len(self.ds)
 
     def __getitem__(self, idx):
-        # get the image and text
-        image = self.ds[idx]["image"]
-        captions = self.ds[idx]["caption"]
+        itm = self.ds[idx]
+        img = itm["image"]
+        txt = itm["caption"][0]  # todo: make this smarter
 
-        # add start/end tokens to each caption as string
-        bos_token = self.processor.tokenizer.bos_token
-        eos_token = self.processor.tokenizer.eos_token
+        enc = self.pr(images=img, text=txt, return_tensors="pt", padding=True)
+        tkn = enc["input_ids"]  # shape [1, seq_len + 2] for bos and eos
+        img = enc["pixel_values"]  # shape [1, 3, 224, 224]
+        mask = enc["attention_mask"][:, 1:]  # shape [1, seq_len + 1]
 
-        # create input sequences (BOS + caption) and target sequences (caption + EOS)
-        input_caps = [f"{bos_token} {caption}" for caption in captions]
-        target_caps = [f"{caption} {eos_token}" for caption in captions]
+        inp_eq = tkn[:, 1:]  # shape [1, seq_len + 1]
+        tgt_eq = tkn[:, :-1]  # shape [1, seq_len + 1]
 
-        # get the image and text embeddings
-        image_inputs = self.processor(images=image, return_tensors="pt")
-        input_seq = self.processor(text=input_caps, return_tensors="pt", padding=True)
-        target_seq = self.processor(text=target_caps, return_tensors="pt", padding=True)
+        img_out = self.vision_model(pixel_values=img)  # shape [1, 768]
+        inp_out = self.text_model(input_ids=inp_eq, attention_mask=mask)
+        tgt_out = self.text_model(input_ids=tgt_eq, attention_mask=mask)
 
-        image_outputs = self.vision_model(**image_inputs)
-        input_outputs = self.text_model(**input_seq)
-        target_outputs = self.text_model(**target_seq)
+        # linear projection to match model dimension 512 and use CLS token
+        img_embeds = self.clip_model.visual_projection(img_out.pooler_output)
+        inp_embeds = self.clip_model.text_projection(inp_out.last_hidden_state)
+        tgt_embeds = self.clip_model.text_projection(tgt_out.last_hidden_state)
 
-        image_embeds = self.model.visual_projection(
-            image_outputs.pooler_output
-        )  # shape: [1, 512] - CLS token
-        input_embeds = self.model.text_projection(
-            input_outputs.last_hidden_state
-        )  # shape: [5, 25, 512]
-        target_embeds = self.model.text_projection(
-            target_outputs.last_hidden_state
-        )  # shape: [5, 25, 512]
-
-        image_as_tensor = image_inputs["pixel_values"].squeeze(0).permute(1, 2, 0)
-
-        return (
-            image_as_tensor,
-            image_embeds,
-            input_embeds,
-            target_embeds,
-        )
+        img_plt = img.squeeze(0).permute(1, 2, 0)  # shape [224, 224, 3]
+        return (img_plt, img_embeds, inp_embeds, tgt_embeds)
