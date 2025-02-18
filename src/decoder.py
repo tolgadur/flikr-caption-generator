@@ -1,29 +1,18 @@
 import torch.nn as nn
 import torch
-from config import TOKEN2INDEX
 
 
 class Decoder(nn.Module):
     def __init__(self, d_model=512, heads=8, n_layers=6, dropout=0.1):
         super().__init__()
-        """
-        This decoder will receive pre-trained embeddings from the CLIP model.
-        Hence, we are not treating x as a tensor of indices but as actual embeddings
-        in the correct shape.
-
-        d_model has to be 512, as the CLIP model outputs 512-dim embeddings.
-        """
 
         self.layers = nn.ModuleList(
             [DecoderLayer(d_model, heads, dropout) for _ in range(n_layers)]
         )
-        self.classifier = nn.Linear(d_model, len(TOKEN2INDEX))
 
     def forward(self, x):
         for layer in self.layers:
             x = layer(x)
-
-        x = self.classifier(x)
 
         return x
 

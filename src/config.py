@@ -14,5 +14,6 @@ if torch.cuda.is_available():
     DEVICE = "cuda"
 
 TOKEN2INDEX, INDEX2TOKEN = get_vocab()
+VOCAB_SIZE = len(TOKEN2INDEX)
 
 print(f"Using device: {DEVICE}")

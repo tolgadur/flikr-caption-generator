@@ -4,14 +4,14 @@ import torch.nn as nn
 import tqdm
 
 from dataset import Flickr30kDataset
-from decoder import Decoder
-from config import DEVICE
+from model import FlickrImageCaptioning
+from config import DEVICE, VOCAB_SIZE
 from collate import CLIPEmbedder, collate_fn
 
 
 def train(epochs=10, batch=256, lr=0.001):
     # define the model and embedder
-    model = Decoder(d_model=512, heads=8, n_layers=6).to(DEVICE)
+    model = FlickrImageCaptioning(d_model=512, heads=8, n_layers=6).to(DEVICE)
     embedder = CLIPEmbedder()
 
     # load the dataset
@@ -33,18 +33,26 @@ def train(epochs=10, batch=256, lr=0.001):
         running_loss = 0
         n_batches = 0
 
-        for _, inp_embeds, tgt_embeds in tqdm.tqdm(
+        for img, inp, tgt, mask in tqdm.tqdm(
             dataloader, desc=f"Epoch {epoch + 1}/{epochs}"
         ):
-            inp_embeds = inp_embeds.to(DEVICE)
-            tgt_embeds = tgt_embeds.to(DEVICE)
+            img = img.to(DEVICE)
+            inp = inp.to(DEVICE)
+            tgt = tgt.to(DEVICE)
+            mask = mask.to(DEVICE)
 
             optimizer.zero_grad()
 
             # forward pass
-            outputs = model(inp_embeds)  # shape: [batch_size, seq_len, d_model]
-            outputs = outputs[:, 1:, :]  # remove the first cls token
-            loss = criterion(outputs, tgt_embeds)
+            outputs = model(img, inp, mask)
+            outputs = outputs[:, 1:, :]  # remove the first token
+
+            # reshape for cross entropy
+            outputs = outputs.reshape(-1, VOCAB_SIZE)
+            tgt = tgt.reshape(-1)
+
+            # compute loss
+            loss = criterion(outputs, tgt)
 
             # backward pass
             loss.backward()
