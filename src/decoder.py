@@ -3,8 +3,14 @@ import torch
 
 
 class Decoder(nn.Module):
-    def __init__(self, d_model, heads, n_layers, dropout=0.1):
+    def __init__(self, d_model=512, heads=8, n_layers=6, dropout=0.1):
         super().__init__()
+        """
+        This decoder will receive pre-trained embeddings from the CLIP model. 
+        Hence, we are not treating x as a tensor of indices but as actual embeddings 
+        in the correct shape.
+        """
+
         self.layers = nn.ModuleList(
             [DecoderLayer(d_model, heads, dropout) for _ in range(n_layers)]
         )
@@ -53,7 +59,7 @@ class Attention(nn.Module):
         super().__init__()
         self.heads = heads
         self.d_k = d_model // heads
-        self.scale = torch.sqrt(torch.tensor(self.d_k, dtype=x.dtype)).item()
+        self.scale = torch.sqrt(torch.tensor(self.d_k)).item()
 
         self.keys = nn.Linear(d_model, 3 * d_model)
         self.out = nn.Linear(d_model, d_model)
