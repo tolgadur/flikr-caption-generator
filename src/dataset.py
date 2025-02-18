@@ -22,7 +22,7 @@ class Flickr30kDataset(torch.utils.data.Dataset):
         img = itm["image"]
         txt = itm["caption"][0]  # todo: make this smarter
 
-        enc = self.pr(images=img, text=txt, return_tensors="pt", padding=True)
+        enc = self.pr(images=img, text=txt, return_tensors="pt")
         tkn = enc["input_ids"]  # shape [1, seq_len + 2] for bos and eos
         img = enc["pixel_values"]  # shape [1, 3, 224, 224]
         mask = enc["attention_mask"][:, 1:]  # shape [1, seq_len + 1]

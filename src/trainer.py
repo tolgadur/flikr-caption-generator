@@ -1,6 +1,7 @@
 from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pad_sequence
 import tqdm
 
 from dataset import Flickr30kDataset
@@ -8,13 +9,24 @@ from decoder import Decoder
 from config import DEVICE
 
 
-def train(epochs=10, batch_size=256, lr=0.001):
+def collate_fn(batch):
+    # Separate the batch components
+    images, img_embeds, inp_embeds, tgt_embeds = zip(*batch)
+
+    # Pad sequences to max length (automatically handles different lengths)
+    inp_embeds = pad_sequence([x.squeeze(0) for x in inp_embeds], batch_first=True)
+    tgt_embeds = pad_sequence([x.squeeze(0) for x in tgt_embeds], batch_first=True)
+
+    return images, img_embeds, inp_embeds, tgt_embeds
+
+
+def train(epochs=10, batch=256, lr=0.001):
     # define the model
     model = Decoder(d_model=512, heads=8, n_layers=6).to(DEVICE)
 
     # load the dataset
     ds = Flickr30kDataset()
-    dataloader = DataLoader(ds, batch_size=batch_size, shuffle=True)
+    dataloader = DataLoader(ds, batch_size=batch, shuffle=True, collate_fn=collate_fn)
 
     # define the loss function and optimizer
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1).to(DEVICE)
@@ -23,16 +35,18 @@ def train(epochs=10, batch_size=256, lr=0.001):
 
     for epoch in range(epochs):
         epoch_loss = 0
-        for _, image_embeds, input_seq, target_seq in tqdm.tqdm(dataloader):
-            image_embeds = image_embeds.to(DEVICE)
-            input_seq = input_seq.to(DEVICE)
-            target_seq = target_seq.to(DEVICE)
+        for _, img_embeds, inp_embeds, tgt_embeds in tqdm.tqdm(dataloader):
+            img_embeds = img_embeds.to(DEVICE)
+            inp_embeds = inp_embeds.to(DEVICE)
+            tgt_embeds = tgt_embeds.to(DEVICE)
 
             optimizer.zero_grad()
 
             # forward pass
-            outputs = model(image_embeds, input_seq)
-            loss = criterion(outputs, target_seq)
+            inp = torch.cat((img_embeds, inp_embeds), dim=1)
+            outputs = model(inp)  # shape: [batch_size, seq_len, d_model]
+            outputs = outputs[:, 1:, :]  # remove the first cls token
+            loss = criterion(outputs, tgt_embeds)
 
             # backward pass
             loss.backward()
