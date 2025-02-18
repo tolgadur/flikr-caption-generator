@@ -59,6 +59,7 @@ class MultiLayerPerceptron(nn.Module):
 class Attention(nn.Module):
     def __init__(self, d_model, heads, dropout=0.1, apply_mask=False):
         super().__init__()
+        self.apply_mask = apply_mask
         self.heads = heads
         self.d_k = d_model // heads
         self.scale = torch.sqrt(torch.tensor(self.d_k)).item()

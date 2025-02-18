@@ -34,10 +34,14 @@ class CLIPEmbedder:
         inp_embeds = self.clip_model.text_projection(inp_out.last_hidden_state)
         tgt_embeds = self.clip_model.text_projection(tgt_out.last_hidden_state)
 
+        # Prepend the CLS token to make it [batch_size, seq_len + 1, d_model]
+        img_embeds = img_embeds.unsqueeze(1)  # [batch_size, 1, d_model]
+        inp_embeds = torch.cat((img_embeds, inp_embeds), dim=1)
+
         # Convert images to the format expected by the model
         img_plt = img.permute(0, 2, 3, 1)  # shape [batch_size, 224, 224, 3]
 
-        return img_plt, img_embeds, inp_embeds, tgt_embeds
+        return img_plt, inp_embeds, tgt_embeds
 
 
 def collate_fn(
@@ -49,7 +53,7 @@ def collate_fn(
         batch: List of tuples (image, text)
         embedder: Instance of CLIPEmbedder
     Returns:
-        Tuple of tensors (images_plt, image_embeds, input_embeds, target_embeds)
+        Tuple of tensors (images_plt, input_embeds, target_embeds)
     """
     images, texts = zip(*batch)
     return embedder(list(images), list(texts))

@@ -30,16 +30,14 @@ def train(epochs=10, batch=256, lr=0.001):
 
     for epoch in range(epochs):
         epoch_loss = 0
-        for _, img_embeds, inp_embeds, tgt_embeds in tqdm.tqdm(dataloader):
-            img_embeds = img_embeds.to(DEVICE)
+        for _, inp_embeds, tgt_embeds in tqdm.tqdm(dataloader):
             inp_embeds = inp_embeds.to(DEVICE)
             tgt_embeds = tgt_embeds.to(DEVICE)
 
             optimizer.zero_grad()
 
             # forward pass
-            inp = torch.cat((img_embeds, inp_embeds), dim=1)
-            outputs = model(inp)  # shape: [batch_size, seq_len, d_model]
+            outputs = model(inp_embeds)  # shape: [batch_size, seq_len, d_model]
             outputs = outputs[:, 1:, :]  # remove the first cls token
             loss = criterion(outputs, tgt_embeds)
 
