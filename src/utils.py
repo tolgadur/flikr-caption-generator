@@ -36,7 +36,8 @@ def example_clip():
     print(text_embeds.shape)
 
 
-def print_image():
+def print_example_image():
+    """Display a random image from the dataset using the dataloader."""
     dataset = Flickr30kDataset()
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
     dataloader = DataLoader(
@@ -48,6 +49,22 @@ def print_image():
     img, *_ = next(iter(dataloader))
     img = img.permute(0, 2, 3, 1).squeeze(0)
     plt.imshow(img)
+    plt.show()
+
+
+def display_image_with_caption(
+    image: Image.Image, caption: str, ground_truth: str = None
+):
+    """Display an image with its caption(s)."""
+    plt.figure(figsize=(10, 8))
+    plt.imshow(image)
+    plt.axis("off")
+
+    title = f"Generated: {caption}"
+    if ground_truth:
+        title += f"\nGround truth: {ground_truth}"
+
+    plt.title(title, wrap=True)
     plt.show()
 
 
