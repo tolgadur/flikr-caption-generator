@@ -124,6 +124,7 @@ def train(epochs=10, batch=256, lr=0.001):
         print(f"Validation Loss: {val_epoch_loss:.4f}")
 
         wandb.log({"train_loss": train_epoch_loss, "val_loss": val_epoch_loss})
+        torch.save(model.state_dict(), f"models/model_{epoch}.pth")
 
         scheduler.step()
 
