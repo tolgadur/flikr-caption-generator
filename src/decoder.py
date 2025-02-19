@@ -13,10 +13,10 @@ class Decoder(nn.Module):
             [DecoderLayer(d_model, heads, dropout) for _ in range(n_layers)]
         )
 
-    def forward(self, x):
+    def forward(self, x, mask=None):
         x = x + self.positional_encoding[: x.size(1)]
         for layer in self.layers:
-            x = layer(x)
+            x = layer(x, mask)
 
         return x
 
@@ -28,8 +28,8 @@ class DecoderLayer(nn.Module):
         self.self_attn = Attention(d_model, heads, dropout, apply_mask=True)
         self.mlp = MultiLayerPerceptron(d_model, d_model * 4, dropout)
 
-    def forward(self, x):
-        x = self.self_attn(x)
+    def forward(self, x, mask=None):
+        x = self.self_attn(x, mask)
         x = self.mlp(x)
 
         return x
@@ -66,7 +66,7 @@ class Attention(nn.Module):
         self.norm = nn.LayerNorm(d_model)
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, x):
+    def forward(self, x, mask=None):
         # x is of shape (batch_size, seq_len, d_model)
         batch_size, seq_len, d_model = x.size()
 
@@ -83,14 +83,25 @@ class Attention(nn.Module):
         key = key.transpose(1, 2)
         val = val.transpose(1, 2)
 
-        # calculate the attention weights
+        # calculate the attention weights. shape (batch_size, heads, seq_len, seq_len)
         A = torch.matmul(qry, key.transpose(-2, -1)) / self.scale
 
         # apply the mask if possible
         if self.apply_mask:
-            mask = torch.tril(torch.ones(A.shape[-2:], device=A.device))
-            mask = mask.unsqueeze(0)  # add batch dimension
-            A = A.masked_fill(mask == 0, float("-inf"))
+            # Create causal mask (1, 1, seq_len, seq_len) - will broadcast to full shape
+            triangle_mask = torch.tril(
+                torch.ones(seq_len, seq_len, dtype=torch.bool, device=A.device)
+            )
+            final_mask = triangle_mask.unsqueeze(0).unsqueeze(0)
+
+            if mask is not None:
+                # Expand padding mask (batch, 1, 1, seq_len) - will broadcast to full shape
+                padding_mask = mask.bool().unsqueeze(1).unsqueeze(2)
+
+                # Combine masks - broadcasting will handle the dimensions
+                final_mask = final_mask | padding_mask
+
+            A = A.masked_fill(final_mask == 0, float("-inf"))
 
         A = torch.softmax(A, dim=-1)
         A = torch.matmul(A, val)

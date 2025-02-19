@@ -37,7 +37,6 @@ def validate(model, val_dataloader, criterion, epoch, epochs):
 
             # forward pass
             outputs = model(img, inp, mask)
-            outputs = outputs[:, 1:, :]
 
             outputs = outputs.reshape(-1, VOCAB_SIZE)
             tgt = tgt.reshape(-1)
@@ -97,7 +96,6 @@ def train(epochs=10, batch=256, lr=0.002):
 
             # forward pass
             outputs = model(img, inp, mask)
-            outputs = outputs[:, 1:, :]  # remove the first token
 
             # reshape for cross entropy
             outputs = outputs.reshape(-1, VOCAB_SIZE)

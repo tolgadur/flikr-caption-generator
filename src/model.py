@@ -47,14 +47,15 @@ class FlickrImageCaptioning(nn.Module):
         self, input_ids: torch.Tensor, mask: torch.Tensor
     ) -> torch.Tensor:
         """Process text through CLIP text model."""
-        text_outputs = self.text_model(input_ids=input_ids, attention_mask=mask)
+        tmp_mask = mask[:, :-1]
+        text_outputs = self.text_model(input_ids=input_ids, attention_mask=tmp_mask)
         return self.clip_model.text_projection(text_outputs.last_hidden_state)
 
     def forward(
         self,
         pixel_values: torch.Tensor,
-        input_ids: torch.Tensor,
-        mask: torch.Tensor,
+        input_ids: torch.Tensor = None,
+        mask: torch.Tensor = None,
     ) -> torch.Tensor:
         """
         Forward pass of the model.
@@ -69,13 +70,13 @@ class FlickrImageCaptioning(nn.Module):
         img_embeds = self.get_image_embeddings(pixel_values)
 
         # Get text embeddings
-        text_embeds = self.get_text_embeddings(input_ids, mask)
-
-        # Combine image and text embeddings
-        x = torch.cat((img_embeds, text_embeds), dim=1)
+        x = img_embeds
+        if input_ids is not None:
+            text_embeds = self.get_text_embeddings(input_ids, mask)
+            x = torch.cat((img_embeds, text_embeds), dim=1)
 
         # Pass through decoder
-        x = self.decoder(x)
+        x = self.decoder(x, mask)
 
         # Project to vocabulary
         return self.out(x)
