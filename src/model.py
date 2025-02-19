@@ -47,8 +47,9 @@ class FlickrImageCaptioning(nn.Module):
         self, input_ids: torch.Tensor, mask: torch.Tensor
     ) -> torch.Tensor:
         """Process text through CLIP text model."""
-        tmp_mask = mask[:, :-1]
-        text_outputs = self.text_model(input_ids=input_ids, attention_mask=tmp_mask)
+        if mask is not None:
+            mask = mask[:, :-1]
+        text_outputs = self.text_model(input_ids=input_ids, attention_mask=mask)
         return self.clip_model.text_projection(text_outputs.last_hidden_state)
 
     def forward(

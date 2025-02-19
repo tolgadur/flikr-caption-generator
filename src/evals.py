@@ -27,21 +27,18 @@ def inference(
     pixel_values = inputs.pixel_values.to(DEVICE)
     # Start with no tokens - just use image embedding
     generated = None
-    mask = None
 
     with torch.no_grad():
         for _ in range(max_length):
-            outputs = model(pixel_values, generated, mask)
+            outputs = model(pixel_values, generated)
             next_token_logits = outputs[:, -1, :] / temperature
             next_token_probs = torch.softmax(next_token_logits, dim=-1)
             next_token = torch.argmax(next_token_probs, dim=-1)  # shape: [1]
 
             if generated is None:
-                generated = next_token.unsqueeze(-1)  # shape: [1, 1]
-                mask = torch.ones((1, 1), dtype=torch.bool, device=DEVICE)
+                generated = next_token.unsqueeze(-1)
             else:
                 generated = torch.cat([generated, next_token.unsqueeze(-1)], dim=-1)
-                mask = torch.cat([mask, torch.ones((1, 1), device=DEVICE)], dim=-1)
 
             if next_token.item() == eos_token_id:
                 break
