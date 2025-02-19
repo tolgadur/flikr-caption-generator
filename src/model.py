@@ -59,7 +59,7 @@ class FlickrImageCaptioning(nn.Module):
         Returns:
             Logits over vocabulary [batch_size, seq_len, vocab_size]
         """
-        # Get image embeddings
+        # Get image embedding CLS token
         img_embeds = self.get_image_embeddings(pixel_values)
 
         # Get text embeddings
