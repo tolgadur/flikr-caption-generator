@@ -39,7 +39,6 @@ def validate(model, val_dataloader, criterion, epoch, epochs):
             outputs = model(img, inp, mask)
             outputs = outputs[:, 1:, :]
 
-            # reshape for cross entropy
             outputs = outputs.reshape(-1, VOCAB_SIZE)
             tgt = tgt.reshape(-1)
 
@@ -51,7 +50,7 @@ def validate(model, val_dataloader, criterion, epoch, epochs):
     return val_loss / val_batches
 
 
-def train(epochs=10, batch=256, lr=0.001):
+def train(epochs=10, batch=256, lr=0.002):
     # define the model and processor
     model = FlickrImageCaptioning(d_model=512, heads=8, n_layers=6).to(DEVICE)
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
@@ -76,7 +75,7 @@ def train(epochs=10, batch=256, lr=0.001):
 
     # define the loss function and optimizer
     criterion = nn.CrossEntropyLoss(label_smoothing=0.1).to(DEVICE)
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
     wandb.init(project="flickr30k-captioning")
@@ -119,7 +118,7 @@ def train(epochs=10, batch=256, lr=0.001):
             train_loss += loss.item()
             train_batches += 1
 
-        # Calculate training loss and run validation
+        # Calculate losses
         train_epoch_loss = train_loss / train_batches
         val_epoch_loss = validate(model, val_dataloader, criterion, epoch, epochs)
 
@@ -129,7 +128,6 @@ def train(epochs=10, batch=256, lr=0.001):
 
         wandb.log({"train_loss": train_epoch_loss, "val_loss": val_epoch_loss})
         torch.save(model.state_dict(), f"models/model_{epoch}.pth")
-
         scheduler.step()
 
     torch.save(model.state_dict(), "models/model.pth")

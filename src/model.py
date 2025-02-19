@@ -14,6 +14,8 @@ class FlickrImageCaptioning(nn.Module):
         Uses CLIP embeddings and a transformer decoder.
         The model has to have d_model of 512 as this is used in the CLIP model
         from the transformers library.
+        Heads need to be set such that d_model % heads is 0.
+        I.e. the values could be 1, 2, 4, 8, 16, 32, 64, 128, 256, 512.
         """
         # CLIP components
         self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
@@ -29,10 +31,10 @@ class FlickrImageCaptioning(nn.Module):
 
         # Output layers
         self.out = nn.Sequential(
-            nn.Linear(d_model, 2048),
+            nn.Linear(d_model, 1024),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(2048, VOCAB_SIZE),
+            nn.Linear(1024, VOCAB_SIZE),
         )
 
     def get_image_embeddings(self, pixel_values: torch.Tensor) -> torch.Tensor:

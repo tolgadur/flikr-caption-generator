@@ -3,14 +3,18 @@ import torch
 
 
 class Decoder(nn.Module):
-    def __init__(self, d_model=512, heads=8, n_layers=6, dropout=0.1):
+    def __init__(self, d_model=512, heads=8, n_layers=6, dropout=0.1, max_seq_len=1024):
         super().__init__()
 
+        self.positional_encoding = nn.parameter.Parameter(
+            torch.randn(max_seq_len, d_model)
+        )
         self.layers = nn.ModuleList(
             [DecoderLayer(d_model, heads, dropout) for _ in range(n_layers)]
         )
 
     def forward(self, x):
+        x = x + self.positional_encoding[: x.size(1)]
         for layer in self.layers:
             x = layer(x)
 
@@ -55,7 +59,7 @@ class Attention(nn.Module):
         self.apply_mask = apply_mask
         self.heads = heads
         self.d_k = d_model // heads
-        self.scale = torch.sqrt(torch.tensor(self.d_k)).item()
+        self.scale = torch.sqrt(torch.tensor(self.d_k, dtype=torch.float32)).item()
 
         self.keys = nn.Linear(d_model, 3 * d_model)
         self.out = nn.Linear(d_model, d_model)
@@ -69,7 +73,7 @@ class Attention(nn.Module):
         qry, key, val = self.keys(x).split(d_model, dim=-1)
 
         # split the input into heads.
-        # qry is of shape (batch_size, seq_len, heads, d_k)
+        # shape (batch_size, seq_len, heads, d_k)
         qry = qry.reshape(batch_size, seq_len, self.heads, self.d_k)
         key = key.reshape(batch_size, seq_len, self.heads, self.d_k)
         val = val.reshape(batch_size, seq_len, self.heads, self.d_k)

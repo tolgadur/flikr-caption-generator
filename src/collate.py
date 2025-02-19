@@ -29,7 +29,7 @@ def collate_fn(
     # Get tokenized inputs and pixel values
     tkn = enc["input_ids"]  # shape [batch_size, seq_len + 2] for bos and eos
     img = enc["pixel_values"]  # shape [batch_size, 3, 224, 224]
-    mask = enc["attention_mask"][:, 1:]  # shape [batch_size, seq_len + 1]
+    mask = enc["attention_mask"][:, :-1]  # shape [batch_size, seq_len + 1]
 
     # Create input and target sequences for training
     inp = tkn[:, :-1]  # shape [batch_size, seq_len + 1]
