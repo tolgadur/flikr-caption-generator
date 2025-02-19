@@ -3,8 +3,7 @@ from datasets import load_dataset
 
 
 class Flickr30kDataset(torch.utils.data.Dataset):
-    def __init__(self, split="train", seed=42):
-        torch.manual_seed(seed)
+    def __init__(self, split="train"):
         ds = load_dataset("nlphuji/flickr30k", split="test").select(range(100))
         self.ds = ds.filter(lambda x: x["split"] == split)
 

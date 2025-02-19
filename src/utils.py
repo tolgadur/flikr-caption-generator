@@ -4,7 +4,7 @@ from dataset import Flickr30kDataset
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
 import requests
-from collate import CLIPEmbedder, collate_fn
+from collate import collate_fn
 
 
 def example_clip():
@@ -34,12 +34,12 @@ def example_clip():
 
 def print_image():
     dataset = Flickr30kDataset()
-    embedder = CLIPEmbedder()
+    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
     dataloader = DataLoader(
         dataset,
         batch_size=1,
         shuffle=True,
-        collate_fn=lambda batch: collate_fn(batch, embedder),
+        collate_fn=lambda batch: collate_fn(batch, processor),
     )
     images_plt, *_ = next(iter(dataloader))
     image = images_plt.squeeze(0)  # remove batch
