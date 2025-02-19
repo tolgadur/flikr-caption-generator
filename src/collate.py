@@ -28,7 +28,7 @@ def collate_fn(
     mask = enc["attention_mask"][:, 1:]  # shape [batch_size, seq_len + 1]
 
     # Create input and target sequences for training
-    inp = tkn[:, 1:]  # shape [batch_size, seq_len + 1]
-    tgt = tkn[:, :-1]  # shape [batch_size, seq_len + 1]
+    inp = tkn[:, :-1]  # shape [batch_size, seq_len + 1]
+    tgt = tkn[:, 1:]  # shape [batch_size, seq_len + 1]
 
     return img, inp, tgt, mask

@@ -1,4 +1,5 @@
 transformers
+datasets
 pillow
 requests
 torch
