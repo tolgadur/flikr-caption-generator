@@ -20,6 +20,10 @@ class FlickrImageCaptioning(nn.Module):
         self.vision_model = self.clip_model.vision_model
         self.text_model = self.clip_model.text_model
 
+        # Freeze CLIP components
+        for param in self.clip_model.parameters():
+            param.requires_grad = False
+
         # Decoder
         self.decoder = Decoder(d_model, heads, n_layers, dropout)
 
