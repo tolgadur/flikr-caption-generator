@@ -19,7 +19,11 @@ def collate_fn(
 
     # Process the batch with padding
     enc = processor(
-        images=list(images), text=list(texts), return_tensors="pt", padding=True
+        images=list(images),
+        text=list(texts),
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
     )
 
     # Get tokenized inputs and pixel values
