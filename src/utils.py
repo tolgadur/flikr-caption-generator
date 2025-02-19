@@ -41,7 +41,7 @@ def print_image():
         shuffle=True,
         collate_fn=lambda batch: collate_fn(batch, processor),
     )
-    images_plt, *_ = next(iter(dataloader))
-    image = images_plt.squeeze(0)  # remove batch
-    plt.imshow(image)
+    img, *_ = next(iter(dataloader))
+    img = img.permute(0, 2, 3, 1).squeeze(0)
+    plt.imshow(img)
     plt.show()

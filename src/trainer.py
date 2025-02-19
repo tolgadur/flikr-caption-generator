@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import tqdm
 from transformers import CLIPProcessor
-
+import wandb
 from dataset import Flickr30kDataset
 from model import FlickrImageCaptioning
 from config import DEVICE, VOCAB_SIZE
@@ -29,6 +29,7 @@ def train(epochs=10, batch=256, lr=0.001):
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
+    wandb.init(project="flickr30k-captioning")
     for epoch in range(epochs):
         model.train()
         running_loss = 0
@@ -66,6 +67,8 @@ def train(epochs=10, batch=256, lr=0.001):
         # Compute epoch average loss
         epoch_loss = running_loss / n_batches
         print(f"Epoch {epoch + 1}/{epochs}, Average Loss: {epoch_loss:.4f}")
+        wandb.log({"loss": epoch_loss})
 
-        scheduler.step()
-        torch.save(model.state_dict(), f"models/model_{epoch}.pth")
+    scheduler.step()
+    torch.save(model.state_dict(), "models/model.pth")
+    wandb.save(f"models/model.pth")

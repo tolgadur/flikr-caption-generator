@@ -1,6 +1,6 @@
 from trainer import train
-from utils import print_image
 import torch
+from utils import print_image
 
 
 torch.manual_seed(42)
@@ -8,7 +8,7 @@ torch.manual_seed(42)
 
 def main():
     print_image()
-    # train()
+    train()
 
 
 if __name__ == "__main__":

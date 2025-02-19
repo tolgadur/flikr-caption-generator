@@ -31,7 +31,4 @@ def collate_fn(
     inp = tkn[:, 1:]  # shape [batch_size, seq_len + 1]
     tgt = tkn[:, :-1]  # shape [batch_size, seq_len + 1]
 
-    # Permute the image tensor from [B, C, H, W] to [B, H, W, C]
-    img = img.permute(0, 2, 3, 1)
-
     return img, inp, tgt, mask

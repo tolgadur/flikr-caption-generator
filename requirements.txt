@@ -4,3 +4,4 @@ requests
 torch
 matplotlib
 tqdm
+wandb
