@@ -2,17 +2,18 @@ from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 import tqdm
+from transformers import CLIPProcessor
 
 from dataset import Flickr30kDataset
 from model import FlickrImageCaptioning
 from config import DEVICE, VOCAB_SIZE
-from collate import CLIPEmbedder, collate_fn
+from collate import collate_fn
 
 
 def train(epochs=10, batch=256, lr=0.001):
-    # define the model and embedder
+    # define the model and processor
     model = FlickrImageCaptioning(d_model=512, heads=8, n_layers=6).to(DEVICE)
-    embedder = CLIPEmbedder()
+    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
     # load the dataset
     ds = Flickr30kDataset()
@@ -20,7 +21,7 @@ def train(epochs=10, batch=256, lr=0.001):
         ds,
         batch_size=batch,
         shuffle=True,
-        collate_fn=lambda batch: collate_fn(batch, embedder),
+        collate_fn=lambda batch: collate_fn(batch, processor),
     )
 
     # define the loss function and optimizer
