@@ -1,9 +1,13 @@
 import matplotlib.pyplot as plt
+import torch
 from torch.utils.data import DataLoader
-from dataset import Flickr30kDataset
 from transformers import CLIPProcessor, CLIPModel
 from PIL import Image
 import requests
+
+from model import FlickrImageCaptioning
+from config import DEVICE
+from dataset import Flickr30kDataset
 from collate import collate_fn
 
 
@@ -45,3 +49,11 @@ def print_image():
     img = img.permute(0, 2, 3, 1).squeeze(0)
     plt.imshow(img)
     plt.show()
+
+
+def load_model(model_path: str = "models/model.pth"):
+    """Load the model from checkpoint and set to eval mode."""
+    model = FlickrImageCaptioning().to(DEVICE)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
+    return model
