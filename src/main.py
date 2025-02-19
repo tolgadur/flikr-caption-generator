@@ -1,14 +1,12 @@
 from trainer import train
 import torch
-from utils import print_image
 
 
 torch.manual_seed(42)
 
 
 def main():
-    print_image()
-    train()
+    train(epochs=20)
 
 
 if __name__ == "__main__":
