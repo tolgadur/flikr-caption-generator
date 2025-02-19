@@ -74,7 +74,7 @@ def train(epochs=10, batch=256, lr=0.002):
     )
 
     # define the loss function and optimizer
-    criterion = nn.CrossEntropyLoss(label_smoothing=0.1).to(DEVICE)
+    criterion = nn.CrossEntropyLoss().to(DEVICE)
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
 
@@ -108,9 +108,6 @@ def train(epochs=10, batch=256, lr=0.002):
 
             # backward pass
             loss.backward()
-
-            # Add gradient clipping
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
             optimizer.step()
 
