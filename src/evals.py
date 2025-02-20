@@ -80,7 +80,6 @@ def sample_five_inference(
         (0.5, False),  # sampling, creative
         (0.7, False),  # sampling, conservative
         (1.5, False),  # sampling, creative
-        (1.8, False),  # sampling, creative
     ]
 
     captions = []
