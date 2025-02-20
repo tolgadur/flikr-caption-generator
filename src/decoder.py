@@ -88,19 +88,20 @@ class Attention(nn.Module):
 
         # apply the mask if possible
         if self.apply_mask:
-            # Create causal mask (1, 1, seq_len, seq_len) - will broadcast to full shape
-            triangle_mask = torch.tril(
-                torch.ones(seq_len, seq_len, dtype=torch.bool, device=A.device)
+            # Create causal mask (allowed positions
+            causal_mask = (
+                torch.tril(
+                    torch.ones(seq_len, seq_len, dtype=torch.bool, device=A.device)
+                )
+                .unsqueeze(0)
+                .unsqueeze(0)
             )
-            final_mask = triangle_mask.unsqueeze(0).unsqueeze(0)
-
             if mask is not None:
-                # Expand padding mask (batch, 1, 1, seq_len) - will broadcast to full shape
+                # Expand padding mask to (batch, 1, 1, seq_len)
                 padding_mask = mask.bool().unsqueeze(1).unsqueeze(2)
-
-                # Combine masks - broadcasting will handle the dimensions
-                final_mask = final_mask | padding_mask
-
+                final_mask = causal_mask & padding_mask
+            else:
+                final_mask = causal_mask
             A = A.masked_fill(final_mask == 0, float("-inf"))
 
         A = torch.softmax(A, dim=-1)
