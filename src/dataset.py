@@ -1,10 +1,9 @@
 import torch
-from datasets import load_dataset, disable_caching
+from datasets import load_dataset
 
 
 class Flickr30kDataset(torch.utils.data.Dataset):
     def __init__(self, split="train"):
-        disable_caching()  # Disable caching to avoid EXIF issues
         ds = load_dataset("nlphuji/flickr30k", split="test")
         self.ds = ds.filter(lambda x: x["split"] == split)
 
