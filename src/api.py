@@ -49,8 +49,12 @@ async def generate_caption(image: UploadFile = File(...)) -> Dict[str, str]:
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}")
 
-    caption = await process_image_and_generate_caption(img)
-    return {"caption": caption}
+    best_cap, all_caps, all_temps = await process_image_and_generate_caption(img)
+    return {
+        "caption": best_cap,
+        "all_captions": ", ".join(all_caps),
+        "all_temperatures": ", ".join(map(str, all_temps)),
+    }
 
 
 @router.post("/generate-caption-from-url")
@@ -73,9 +77,11 @@ async def generate_caption_from_url(image_url: ImageUrl) -> Dict[str, str]:
             status_code=400, detail=f"Error fetching image from URL: {str(e)}"
         )
     except Exception as e:
-        raise HTTPException(
-            status_code=400, detail=f"Invalid image URL or format: {str(e)}"
-        )
+        raise HTTPException(status_code=400, detail=f"Invalid image: {str(e)}")
 
-    caption = await process_image_and_generate_caption(img)
-    return {"caption": caption}
+    best_cap, all_caps, all_temps = await process_image_and_generate_caption(img)
+    return {
+        "caption": best_cap,
+        "all_captions": ", ".join(all_caps),
+        "all_temperatures": ", ".join(map(str, all_temps)),
+    }

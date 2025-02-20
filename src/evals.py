@@ -142,7 +142,7 @@ def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> s
     print(f"Winner: {captions[best_idx]}")
     print("-" * 100)
 
-    return captions[best_idx]
+    return captions[best_idx], captions, temperatures
 
 
 def eval_sample():
@@ -153,12 +153,12 @@ def eval_sample():
         image, gt_caption = dataset[i]
 
         # Get best caption
-        caption = get_best_caption(image)
+        caption, _, _ = get_best_caption(image)
         display_image_with_caption(image, caption, gt_caption)
 
 
 def eval_from_url(url: str):
     """Evaluate the model on an image from a URL."""
     image = Image.open(requests.get(url, stream=True).raw)
-    caption = get_best_caption(image)
+    caption, _, _ = get_best_caption(image)
     display_image_with_caption(image, caption)
