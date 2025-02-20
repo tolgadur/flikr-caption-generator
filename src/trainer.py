@@ -51,7 +51,7 @@ def validate(model, val_dataloader, criterion, epoch, epochs):
 
 def train(epochs=10, batch=128, lr=0.0002):
     # define the model and processor
-    model = FlickrImageCaptioning(d_model=512, heads=4, n_layers=6).to(DEVICE)
+    model = FlickrImageCaptioning(d_model=512, heads=8, n_layers=6).to(DEVICE)
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
     # load the dataset
