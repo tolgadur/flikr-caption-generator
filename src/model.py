@@ -3,7 +3,7 @@ import torch.nn as nn
 from transformers import CLIPModel
 
 from decoder import Decoder
-from config import VOCAB_SIZE
+from vocab import VOCAB_SIZE
 
 
 class FlickrImageCaptioning(nn.Module):

@@ -2,16 +2,13 @@ import torch
 from transformers import CLIPProcessor
 from PIL import Image
 import requests
-from config import DEVICE
-from utils import load_model, display_image_with_caption
+from config import DEVICE, MODEL
+from utils import display_image_with_caption
 from dataset import Flickr30kDataset
 
 
-def inference(image: Image.Image, model=None, max_length: int = 77):
+def inference(image: Image.Image, model=MODEL, max_length: int = 77):
     """Generate a caption for an image using the model."""
-    if model is None:
-        model = load_model()
-
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
     eos_token_id = processor.tokenizer.eos_token_id
 
@@ -43,7 +40,7 @@ def inference(image: Image.Image, model=None, max_length: int = 77):
 
 def eval_sample():
     """Evaluate the model on a random training image."""
-    dataset = Flickr30kDataset(split="train")
+    dataset = Flickr30kDataset(split="test")
 
     for i in range(10):
         image, gt_caption = dataset[i]

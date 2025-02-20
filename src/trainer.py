@@ -6,7 +6,8 @@ from transformers import CLIPProcessor
 import wandb
 from dataset import Flickr30kDataset
 from model import FlickrImageCaptioning
-from config import DEVICE, VOCAB_SIZE
+from config import DEVICE
+from vocab import VOCAB_SIZE
 from collate import collate_fn
 
 

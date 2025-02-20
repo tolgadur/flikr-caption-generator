@@ -1,16 +1,17 @@
-import torch
+from fastapi import FastAPI
+from api import router
+import uvicorn
 
-from trainer import train
-from evals import eval_sample
+# Initialize FastAPI app
+app = FastAPI(title="Flickr Caption Generator")
 
-
-torch.manual_seed(42)
+# Include API router
+app.include_router(router)
 
 
 def main():
-    train(epochs=30)
 
-    eval_sample()
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
 
 if __name__ == "__main__":

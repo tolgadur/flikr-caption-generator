@@ -8,3 +8,6 @@ torchaudio==2.1.0
 matplotlib
 tqdm
 wandb
+fastapi
+python-multipart
+uvicorn
