@@ -59,7 +59,7 @@ class Attention(nn.Module):
         self.apply_mask = apply_mask
         self.heads = heads
         self.d_k = d_model // heads
-        self.scale = torch.sqrt(torch.tensor(self.d_k, dtype=torch.float32)).item()
+        self.scale = torch.sqrt(torch.tensor(self.d_k, dtype=torch.float32))
 
         self.keys = nn.Linear(d_model, 3 * d_model)
         self.out = nn.Linear(d_model, d_model)
