@@ -122,9 +122,27 @@ def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> s
     """
     captions, temperatures = sample_five_inference(image, model, max_length)
 
-    # Process image and captions with CLIP
+    # Filter out captions that would exceed CLIP's token limit
+    valid_captions = []
+    valid_indices = []
+
+    for idx, caption in enumerate(captions):
+        # Check token length without actually tokenizing
+        tokens = CLIP_PROCESSOR.tokenizer(
+            caption, return_tensors="pt", truncation=False
+        )
+        if len(tokens.input_ids[0]) <= 77:  # CLIP's max token length
+            valid_captions.append(caption)
+            valid_indices.append(idx)
+
+    if not valid_captions:
+        # If no valid captions, return the shortest one after truncation
+        shortest_caption = min(captions, key=len)
+        return shortest_caption, captions, temperatures
+
+    # Process image and valid captions with CLIP
     inputs = CLIP_PROCESSOR(
-        text=captions,
+        text=valid_captions,
         images=image,
         return_tensors="pt",
         padding=True,
@@ -135,8 +153,10 @@ def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> s
         outputs = CLIP_MODEL(**inputs)
         logits_per_image = outputs.logits_per_image
 
-    # Get index of most similar caption
-    best_idx = logits_per_image.argmax().item()
+    # Get index of most similar caption among valid ones
+    best_valid_idx = logits_per_image.argmax().item()
+    best_idx = valid_indices[best_valid_idx]
+
     print(f"\nSelected caption {best_idx + 1} as the best match")
     print(f"All logics: {logits_per_image}")
     print(f"Winner: {captions[best_idx]}")
