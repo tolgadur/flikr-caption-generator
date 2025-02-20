@@ -7,9 +7,7 @@ from utils import load_model, display_image_with_caption
 from dataset import Flickr30kDataset
 
 
-def inference(
-    image: Image.Image, model=None, temperature: float = 1.0, max_length: int = 77
-):
+def inference(image: Image.Image, model=None, max_length: int = 77):
     """Generate a caption for an image using the model."""
     if model is None:
         model = load_model()
@@ -27,7 +25,7 @@ def inference(
     with torch.no_grad():
         for _ in range(max_length):
             outputs = model(pixel_values, generated)
-            next_token_logits = outputs[:, -1, :] / temperature
+            next_token_logits = outputs[:, -1, :]
             next_token_probs = torch.softmax(next_token_logits, dim=-1)
             next_token = torch.argmax(next_token_probs, dim=-1)  # shape: [1]
 
@@ -46,10 +44,12 @@ def inference(
 def eval_sample():
     """Evaluate the model on a random training image."""
     dataset = Flickr30kDataset(split="train")
-    image, gt_caption = dataset[1]
 
-    caption = inference(image)
-    display_image_with_caption(image, caption, gt_caption)
+    for i in range(10):
+        image, gt_caption = dataset[i]
+
+        caption = inference(image)
+        display_image_with_caption(image, caption, gt_caption)
 
 
 def eval_from_url(url: str):
