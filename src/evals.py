@@ -18,11 +18,7 @@ def inference(
     eos_token_id = processor.tokenizer.eos_token_id
 
     # Process image
-    inputs = processor(
-        images=image,
-        return_tensors="pt",
-        padding=True,
-    )
+    inputs = processor(images=image, return_tensors="pt")
 
     pixel_values = inputs.pixel_values.to(DEVICE)
     # Start with no tokens - just use image embedding
@@ -50,7 +46,7 @@ def inference(
 def eval_sample():
     """Evaluate the model on a random training image."""
     dataset = Flickr30kDataset(split="train")
-    image, gt_caption = dataset[0]
+    image, gt_caption = dataset[1]
 
     caption = inference(image)
     display_image_with_caption(image, caption, gt_caption)
