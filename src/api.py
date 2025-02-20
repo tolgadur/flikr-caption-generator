@@ -6,7 +6,7 @@ from typing import Dict
 from pydantic import BaseModel, HttpUrl
 
 from config import MODEL
-from evals import inference
+from evals import get_best_caption
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ class ImageUrl(BaseModel):
 async def process_image_and_generate_caption(img: Image.Image) -> str:
     """Helper function to generate caption from PIL Image."""
     try:
-        return inference(img, model=MODEL)
+        return get_best_caption(img, model=MODEL)
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error generating caption: {str(e)}"

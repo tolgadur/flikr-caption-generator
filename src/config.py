@@ -1,5 +1,6 @@
 import torch
 from model import FlickrImageCaptioning
+from transformers import CLIPProcessor, CLIPModel
 
 
 def load_model(model_path: str = "models/model.pth"):
@@ -13,6 +14,11 @@ def load_model(model_path: str = "models/model.pth"):
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {DEVICE}")
 
-# Initialize model globally
+# Initialize models globally
 torch.manual_seed(42)
 MODEL = load_model()
+CLIP_MODEL = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(DEVICE)
+CLIP_PROCESSOR = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+
+# Set CLIP model to eval mode
+CLIP_MODEL.eval()
