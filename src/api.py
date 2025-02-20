@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from PIL import Image
 import io
 import requests
-from typing import Dict
+from typing import Dict, List
 from pydantic import BaseModel, HttpUrl
 
 from config import MODEL
@@ -32,7 +32,7 @@ def health_check() -> Dict[str, str]:
 
 
 @router.post("/generate-caption")
-async def generate_caption(image: UploadFile = File(...)) -> Dict[str, str]:
+async def generate_caption(image: UploadFile = File(...)) -> Dict[str, str | List[str]]:
     """
     Generate a caption for the uploaded image.
 
@@ -40,7 +40,7 @@ async def generate_caption(image: UploadFile = File(...)) -> Dict[str, str]:
         image: The image file to generate a caption for
 
     Returns:
-        Dict containing the generated caption
+        Dict containing the generated caption and list of all captions
     """
     try:
         # Read and convert the uploaded file to PIL Image
@@ -49,16 +49,15 @@ async def generate_caption(image: UploadFile = File(...)) -> Dict[str, str]:
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}")
 
-    best_cap, all_caps, all_temps = await process_image_and_generate_caption(img)
+    best_cap, all_caps = await process_image_and_generate_caption(img)
     return {
         "caption": best_cap,
-        "all_captions": ", ".join(all_caps),
-        "all_temperatures": ", ".join(map(str, all_temps)),
+        "all_captions": all_caps,
     }
 
 
 @router.post("/generate-caption-from-url")
-async def generate_caption_from_url(image_url: ImageUrl) -> Dict[str, str]:
+async def generate_caption_from_url(image_url: ImageUrl) -> Dict[str, str | List[str]]:
     """
     Generate a caption for an image from a URL.
 
@@ -66,7 +65,7 @@ async def generate_caption_from_url(image_url: ImageUrl) -> Dict[str, str]:
         image_url: The URL of the image to generate a caption for
 
     Returns:
-        Dict containing the generated caption
+        Dict containing the generated caption and list of all captions
     """
     try:
         response = requests.get(str(image_url.url), stream=True)
@@ -79,9 +78,8 @@ async def generate_caption_from_url(image_url: ImageUrl) -> Dict[str, str]:
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid image: {str(e)}")
 
-    best_cap, all_caps, all_temps = await process_image_and_generate_caption(img)
+    best_cap, all_caps = await process_image_and_generate_caption(img)
     return {
         "caption": best_cap,
-        "all_captions": ", ".join(all_caps),
-        "all_temperatures": ", ".join(map(str, all_temps)),
+        "all_captions": all_caps,
     }

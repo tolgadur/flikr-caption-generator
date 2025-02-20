@@ -103,7 +103,7 @@ def sample_five_inference(
         print(f"Caption: {caption}")
         print("-" * 100)
 
-    return captions, temperatures
+    return captions
 
 
 def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> str:
@@ -120,7 +120,7 @@ def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> s
     Returns:
         The caption most semantically similar to the image according to CLIP
     """
-    captions, temperatures = sample_five_inference(image, model, max_length)
+    captions = sample_five_inference(image, model, max_length)
 
     # Filter out captions that would exceed CLIP's token limit
     valid_captions = []
@@ -138,7 +138,7 @@ def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> s
     if not valid_captions:
         # If no valid captions, return the shortest one after truncation
         shortest_caption = min(captions, key=len)
-        return shortest_caption, captions, temperatures
+        return shortest_caption, captions
 
     # Process image and valid captions with CLIP
     inputs = CLIP_PROCESSOR(
@@ -162,7 +162,7 @@ def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> s
     print(f"Winner: {captions[best_idx]}")
     print("-" * 100)
 
-    return captions[best_idx], captions, temperatures
+    return captions[best_idx], captions
 
 
 def eval_sample():
