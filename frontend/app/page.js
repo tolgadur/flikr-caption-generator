@@ -69,22 +69,58 @@ export default function Home() {
 
   const startCamera = async () => {
     try {
+      console.log('Requesting camera access...');
+      setShowCamera(true);  // Set this first so the video element is mounted
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
+        video: {
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          facingMode: 'user'
+        }
       });
       
+      console.log('Camera access granted, setting up video element...');
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(console.error);
+        
+        // Debug video element state
+        console.log('Video element ready state:', videoRef.current.readyState);
+        console.log('Video element dimensions:', {
+          width: videoRef.current.videoWidth,
+          height: videoRef.current.videoHeight
+        });
+
+        videoRef.current.onloadedmetadata = async () => {
+          console.log('Video metadata loaded');
+          try {
+            await videoRef.current.play();
+            console.log('Video playback started');
+          } catch (playError) {
+            console.error('Error playing video:', playError);
+            setError('Failed to start video stream. Please try again.');
+            stopCamera();
+          }
+        };
+
+        // Add error event listener
+        videoRef.current.onerror = (error) => {
+          console.error('Video element error:', error);
+          setError('Error with video playback. Please try again.');
+        };
       }
-      setShowCamera(true);
     } catch (err) {
-      setError('Failed to access camera. Please make sure you have granted camera permissions.');
-      console.error('Camera error:', err);
+      console.error('Camera access error:', err);
+      if (err.name === 'NotAllowedError') {
+        setError('Camera access denied. Please allow camera access in your browser settings.');
+      } else if (err.name === 'NotFoundError') {
+        setError('No camera found. Please ensure your camera is properly connected.');
+      } else if (err.name === 'NotReadableError') {
+        setError('Camera is in use by another application. Please close other apps using the camera.');
+      } else {
+        setError(`Failed to access camera: ${err.message}`);
+      }
+      stopCamera();
     }
   };
 
@@ -157,14 +193,24 @@ export default function Home() {
         </h1>
 
         {showCamera ? (
-          <div className="space-y-4">
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full rounded-lg shadow-lg bg-black"
-            />
+          <div className="space-y-4 w-full">
+            <div className="w-full h-[480px] bg-black rounded-lg overflow-hidden">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                width="1280"
+                height="720"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  transform: 'scaleX(-1)',
+                  backgroundColor: 'black'
+                }}
+              />
+            </div>
             <div className="flex justify-center gap-4">
               <button
                 onClick={captureImage}
