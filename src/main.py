@@ -8,7 +8,7 @@ torch.manual_seed(42)
 
 
 def main():
-    train(epochs=20)
+    train(epochs=30)
 
     eval_sample()
 
