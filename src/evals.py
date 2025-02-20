@@ -4,6 +4,7 @@ import requests
 from config import DEVICE, MODEL, CLIP_MODEL, CLIP_PROCESSOR
 from utils import display_image_with_caption
 from dataset import Flickr30kDataset
+from schemas import CaptionDetails, CaptionResponse
 
 
 def inference(
@@ -63,28 +64,19 @@ def inference(
 
 def sample_five_inference(
     image: Image.Image, model=MODEL, max_length: int = 77
-) -> tuple[list[str], list[float], list[bool]]:
-    """Generate five different captions using both argmax and sampling strategies."""
-    # Always include:
-    # 1. argmax with temp=1.0
-    # 2. sampling with temp=1.0
-    # 3. argmax with temp=0.7 (more conservative)
-    # 4. sampling with temp=0.7 (more conservative)
-    # 5. sampling with temp=1.2 (more creative)
-
+) -> list[CaptionDetails]:
+    """Generate different captions using both argmax and sampling strategies."""
     configs = [
         (1.0, True),  # argmax, standard temp
         (1.0, False),  # sampling, standard temp
         (0.1, False),  # sampling, conservative
-        (0.01, False),  # sampling, conservative
-        (0.5, False),  # sampling, creative
-        (0.7, False),  # sampling, conservative
+        (0.01, False),  # sampling, very conservative
+        (0.5, False),  # sampling, moderate
+        (0.7, False),  # sampling, slightly conservative
         (1.5, False),  # sampling, creative
     ]
 
-    captions = []
-    temperatures = []
-    is_argmax = []
+    caption_details = []
 
     for temp, use_argmax in configs:
         caption = inference(
@@ -94,19 +86,26 @@ def sample_five_inference(
             temperature=temp,
             use_argmax=use_argmax,
         )
-        captions.append(caption)
-        temperatures.append(temp)
-        is_argmax.append(use_argmax)
+
+        details = CaptionDetails(
+            caption=caption,
+            temperature=temp,
+            is_argmax=use_argmax,
+            model_type="single" if use_argmax else "multimodal",
+        )
+        caption_details.append(details)
 
         print(f"Temperature: {temp}, {'Argmax' if use_argmax else 'Sampling'}")
         print(f"Caption: {caption}")
         print("-" * 100)
 
-    return captions
+    return caption_details
 
 
-def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> str:
-    """Generate five captions and return the one most aligned with the image.
+def get_best_caption(
+    image: Image.Image, model=MODEL, max_length: int = 77
+) -> CaptionResponse:
+    """Generate captions and return the one most aligned with the image.
 
     Uses CLIP to compare the generated captions with the image and select
     the most semantically similar one.
@@ -117,16 +116,16 @@ def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> s
         max_length: Maximum length of generated captions
 
     Returns:
-        The caption most semantically similar to the image according to CLIP
+        CaptionResponse containing the best caption and all generated captions with their details
     """
-    captions = sample_five_inference(image, model, max_length)
+    caption_details = sample_five_inference(image, model, max_length)
+    captions = [detail.caption for detail in caption_details]
 
     # Filter out captions that would exceed CLIP's token limit
     valid_captions = []
     valid_indices = []
 
     for idx, caption in enumerate(captions):
-        # Check token length without actually tokenizing
         tokens = CLIP_PROCESSOR.tokenizer(
             caption, return_tensors="pt", truncation=False
         )
@@ -135,9 +134,11 @@ def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> s
             valid_indices.append(idx)
 
     if not valid_captions:
-        # If no valid captions, return the shortest one after truncation
-        shortest_caption = min(captions, key=len)
-        return shortest_caption, captions
+        # If no valid captions, return the shortest one
+        shortest_idx = min(range(len(captions)), key=lambda i: len(captions[i]))
+        return CaptionResponse(
+            caption=captions[shortest_idx], all_captions=caption_details
+        )
 
     # Process image and valid captions with CLIP
     inputs = CLIP_PROCESSOR(
@@ -157,11 +158,11 @@ def get_best_caption(image: Image.Image, model=MODEL, max_length: int = 77) -> s
     best_idx = valid_indices[best_valid_idx]
 
     print(f"\nSelected caption {best_idx + 1} as the best match")
-    print(f"All logics: {logits_per_image}")
+    print(f"All logits: {logits_per_image}")
     print(f"Winner: {captions[best_idx]}")
     print("-" * 100)
 
-    return captions[best_idx], captions
+    return CaptionResponse(caption=captions[best_idx], all_captions=caption_details)
 
 
 def eval_sample():

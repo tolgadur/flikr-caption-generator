@@ -55,11 +55,30 @@ export default function ResultModal({ isOpen, onClose, imageUrl, caption, allCap
             </button>
             
             {isDropdownOpen && (
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <div className="bg-gray-50 rounded-lg p-4 space-y-4">
                 {allCaptions?.map((cap, index) => (
-                  <p key={index} className="text-sm text-gray-600">
-                    {cap}
-                  </p>
+                  <div key={index} className="border-b border-gray-200 pb-3 last:border-0 last:pb-0">
+                    <p className="text-base text-gray-700 mb-1">{cap.caption}</p>
+                    <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+                      <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                        Temperature: {cap.temperature.toFixed(2)}
+                      </span>
+                      <span className={`px-2 py-1 rounded ${
+                        cap.is_argmax 
+                          ? 'bg-purple-50 text-purple-700'
+                          : 'bg-green-50 text-green-700'
+                      }`}>
+                        {cap.is_argmax ? 'Argmax' : 'Sampling'}
+                      </span>
+                      <span className={`px-2 py-1 rounded ${
+                        cap.model_type === 'single'
+                          ? 'bg-orange-50 text-orange-700'
+                          : 'bg-teal-50 text-teal-700'
+                      }`}>
+                        {cap.model_type === 'single' ? 'Single Model' : 'Multimodal'}
+                      </span>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

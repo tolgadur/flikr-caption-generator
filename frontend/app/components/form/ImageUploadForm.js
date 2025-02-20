@@ -21,17 +21,13 @@ export default function ImageUploadForm({
     if (!selectedFile) return;
     onFileChange(selectedFile);
     setFeedback('Image file selected: ' + selectedFile.name);
-    // Clear URL input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = selectedFile ? selectedFile.name : '';
-    }
   };
 
   const handleUrlInput = (url) => {
     onUrlChange(url);
     if (url) {
       setFeedback('Image URL entered');
-      // Clear file input
+      // Reset file input by recreating it
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -42,7 +38,7 @@ export default function ImageUploadForm({
 
   const handleCameraClick = () => {
     setFeedback('');
-    // Clear both inputs
+    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -63,6 +59,11 @@ export default function ImageUploadForm({
           accept="image/*"
           className="w-full p-2 border border-gray-300 rounded-lg"
         />
+        {file && (
+          <p className="mt-2 text-sm text-gray-600">
+            Selected file: {file.name}
+          </p>
+        )}
       </div>
 
       <div className="text-center">
