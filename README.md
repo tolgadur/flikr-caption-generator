@@ -46,6 +46,31 @@ python src/main.py
 
 Access the API at `http://localhost:8000`.
 
+## 🐳 Docker Deployment
+
+Update the registry in `docker-compose.yml`:
+
+```yaml
+image: docker.io/yourusername/flikr-caption-generator:backend
+image: docker.io/yourusername/flikr-caption-generator:frontend
+```
+
+Build and push:
+
+```bash
+# Build both services
+docker compose build
+
+# Push to registry
+docker compose push
+```
+
+Run on your server:
+
+```bash
+docker compose pull && docker compose up -d
+```
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

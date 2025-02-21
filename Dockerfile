@@ -1,5 +1,5 @@
 # Use PyTorch as base image with CUDA support
-FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+FROM --platform=$BUILDPLATFORM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime AS builder
 
 # Set working directory
 WORKDIR /app
@@ -19,6 +19,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the source code and model files
 COPY src/ ./src/
 COPY models/ ./models/
+
+# Production stage
+FROM --platform=$TARGETPLATFORM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime AS runner
+
+WORKDIR /app
+
+# Copy from builder
+COPY --from=builder /app /app
 
 # Set environment variables
 ENV PYTHONPATH=/app
