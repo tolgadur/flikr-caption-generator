@@ -91,7 +91,6 @@ def sample_five_inference(
             caption=caption,
             temperature=temp,
             is_argmax=use_argmax,
-            model_type="single" if use_argmax else "multimodal",
         )
         caption_details.append(details)
 

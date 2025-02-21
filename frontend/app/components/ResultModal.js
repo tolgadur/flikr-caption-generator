@@ -70,13 +70,6 @@ export default function ResultModal({ isOpen, onClose, imageUrl, caption, allCap
                       }`}>
                         {cap.is_argmax ? 'Argmax' : 'Sampling'}
                       </span>
-                      <span className={`px-2 py-1 rounded ${
-                        cap.model_type === 'single'
-                          ? 'bg-orange-50 text-orange-700'
-                          : 'bg-teal-50 text-teal-700'
-                      }`}>
-                        {cap.model_type === 'single' ? 'Single Model' : 'Multimodal'}
-                      </span>
                     </div>
                   </div>
                 ))}

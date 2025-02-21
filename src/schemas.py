@@ -10,7 +10,6 @@ class CaptionDetails(BaseModel):
     caption: str
     temperature: float
     is_argmax: bool
-    model_type: str  # 'multimodal' or 'single'
 
 
 class CaptionResponse(BaseModel):

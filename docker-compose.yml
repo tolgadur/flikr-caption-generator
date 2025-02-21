@@ -12,8 +12,6 @@ services:
       - "8000:8000"
     environment:
       - PYTHONPATH=/app
-    volumes:
-      - ./models:/app/models
     
   frontend:
     platform: linux/amd64
