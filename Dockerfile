@@ -5,7 +5,7 @@ FROM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
-    MODEL_PATH=/app/models
+    MODEL_PATH=/models
 
 # Set working directory
 WORKDIR /app
@@ -16,14 +16,14 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /app/models
+    && mkdir -p /models
 
 # Copy requirements first and install dependencies - changes occasionally
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # Copy the model file - large but changes rarely
-COPY models/model.pth /app/models/model.pth
+COPY models/model.pth /models/model.pth
 
 # Copy the application code - changes frequently, keep this last
 COPY src/ ./src/

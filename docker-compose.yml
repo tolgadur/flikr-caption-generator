@@ -12,6 +12,8 @@ services:
       - "8000:8000"
     environment:
       - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
     
   frontend:
     platform: linux/amd64
@@ -26,5 +28,6 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+    restart: unless-stopped
     depends_on:
       - backend
