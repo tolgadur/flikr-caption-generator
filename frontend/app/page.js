@@ -5,6 +5,7 @@ import Camera from './components/camera/Camera';
 import ImageUploadForm from './components/form/ImageUploadForm';
 import ResultModal from './components/ResultModal';
 import ErrorMessage from './components/ui/ErrorMessage';
+import { config } from './config';
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState('');
@@ -28,12 +29,12 @@ export default function Home() {
         const formData = new FormData();
         formData.append('image', fileToUse);
         
-        response = await fetch('http://localhost:8000/generate-caption', {
+        response = await fetch(`${config.backendUrl}/generate-caption`, {
           method: 'POST',
           body: formData,
         });
       } else if (imageUrl) {
-        response = await fetch('http://localhost:8000/generate-caption-from-url', {
+        response = await fetch(`${config.backendUrl}/generate-caption-from-url`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
