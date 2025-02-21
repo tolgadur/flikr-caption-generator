@@ -1,13 +1,20 @@
-transformers
-datasets
-pillow>=10.0.1
-requests
+# Core ML dependencies (already in base image)
 torch==2.1.0
 torchvision==0.16.0
 torchaudio==2.1.0
-matplotlib
-tqdm
-wandb
-fastapi
-python-multipart
-uvicorn
+
+# Model and data processing
+transformers==4.49.0
+datasets==3.3.2
+pillow>=10.0.1
+tqdm>=4.65.0
+
+# Web framework
+fastapi==0.115.8
+python-multipart==0.0.20
+uvicorn==0.34.0
+
+# Utilities
+requests>=2.31.0
+matplotlib>=3.10.0
+wandb>=0.19.7

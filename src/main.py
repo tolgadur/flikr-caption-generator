@@ -1,10 +1,23 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api import router
 import uvicorn
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print("Starting up Flickr Caption Generator backend...")
+    print("CORS configured for http://localhost:3000")
+    print("API router initialized")
+    yield
+    # Shutdown
+    print("Shutting down...")
+
+
 # Initialize FastAPI app
-app = FastAPI(title="Flickr Caption Generator")
+app = FastAPI(title="Flickr Caption Generator", lifespan=lifespan)
 
 # Configure CORS
 app.add_middleware(
@@ -20,7 +33,8 @@ app.include_router(router)
 
 
 def main():
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    print("Starting uvicorn server...")
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True, log_level="info")
 
 
 if __name__ == "__main__":

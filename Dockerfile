@@ -1,5 +1,11 @@
-# Use PyTorch as base image with CUDA support
-FROM --platform=$BUILDPLATFORM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime AS builder
+# Use PyTorch as base image
+FROM --platform=linux/arm64 pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    MODEL_PATH=/app/models
 
 # Set working directory
 WORKDIR /app
@@ -8,31 +14,21 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first to leverage Docker cache
 COPY requirements.txt .
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
-# Copy the source code and model files
+# Copy the application code and models
 COPY src/ ./src/
 COPY models/ ./models/
-
-# Production stage
-FROM --platform=$TARGETPLATFORM pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime AS runner
-
-WORKDIR /app
-
-# Copy from builder
-COPY --from=builder /app /app
-
-# Set environment variables
-ENV PYTHONPATH=/app
 
 # Expose the port the app runs on
 EXPOSE 8000
 
-# Command to run the API
+# Run the application
 CMD ["python", "src/main.py"] 

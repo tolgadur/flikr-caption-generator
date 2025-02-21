@@ -7,7 +7,7 @@ from vocab import VOCAB_SIZE
 
 
 class FlickrImageCaptioning(nn.Module):
-    def __init__(self, d_model=512, heads=8, n_layers=6, dropout=0.1):
+    def __init__(self, clip_model=None, d_model=512, heads=8, n_layers=6, dropout=0.1):
         super().__init__()
         """
         End-to-end model for image captioning.
@@ -18,7 +18,10 @@ class FlickrImageCaptioning(nn.Module):
         I.e. the values could be 1, 2, 4, 8, 16, 32, 64, 128, 256, 512.
         """
         # CLIP components
-        self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+        if clip_model is None:
+            self.clip_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+        else:
+            self.clip_model = clip_model
         self.vision_model = self.clip_model.vision_model
         self.text_model = self.clip_model.text_model
 
