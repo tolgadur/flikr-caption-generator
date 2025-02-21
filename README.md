@@ -1,35 +1,12 @@
 # Flickr Caption Generator
 
-A deep learning-based image captioning system that generates natural language descriptions for images using the Flickr dataset. The project implements a transformer-based architecture for image understanding and caption generation, with a FastAPI-based web service for easy deployment. The model weights were not included in the repository due to size constraints. You can easy retrain it though.
+A deep learning-based image captioning system that generates natural language descriptions for images using the Flickr dataset. I used the CLIP model from Huggingface for image and text encodings and implemented a decoder with self-attention only for caption generation based on them. I took inspiration from the Pixtral 12B paper and instead of using cross-attention, I feed in the CLS token of my image encoding as the start token for a more streamlined architecture.
 
-## 🌟 Features
-
-- Transformer-based image captioning model
-- FastAPI web service for real-time caption generation
-- Docker support for easy deployment
-- Weights & Biases integration for experiment tracking
-- Comprehensive evaluation metrics
-- Training and inference pipelines
-
-## 🛠 Tech Stack
-
-- Python 3.x
-- PyTorch 2.1.0
-- Transformers
-- FastAPI
-- Docker
-- Weights & Biases
-
-## 📋 Prerequisites
-
-- Python 3.x
-- CUDA-compatible GPU (for training)
-- Docker (optional, for containerized deployment)
-
+For inference, I sample captions at different temperatures and let CLIP select the best caption. The project implements a transformer-based architecture for image understanding and caption generation, with a FastAPI-based web service for easy deployment. The model weights were not included in the repository due to size constraints, but you can easily retrain it using the training script.
 
 ## 📁 Project Structure
 
-```
+```text
 flikr-caption-generator/
 ├── src/
 │   ├── api.py           # FastAPI web service
@@ -68,7 +45,6 @@ python src/main.py
 ```
 
 Access the API at `http://localhost:8000`.
-
 
 ## 📄 License
 
